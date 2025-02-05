@@ -1,43 +1,40 @@
+import Link from "next/link";
 import type { Metadata } from "next";
-import Image from "next/image";
-import { urlFor } from "@/lib/sanity/utils";
 import { sanityClient } from "@/lib/sanity";
-import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
-
 
 export const metadata: Metadata = {
     title: "Home",
 };
 
 type Post = {
-    _id: string;
+    slug: string;
     title: string;
-    thumbnail: SanityImageSource
-}
-
+    description: string;
+};
 
 export default async function Home() {
-    const query = "*[_type == \"post\"] { _id, title, thumbnail }";
+    const query = `*[_type == 'post'] {
+        "slug": slug.current,
+        title,
+        description
+    }`;
     const posts = await sanityClient.fetch<Post[]>(query);
 
     return (
-        <main>
+        <main className="m-5">
             <h1>Posts</h1>
-            <ul>
+            <ul className="list-decimal ml-5">
                 {posts.map((post) => (
-                    <li key={post._id}>
-                        <h2>{post.title}</h2>
-                        {post.thumbnail && (
-                            <Image
-                                src={urlFor(post.thumbnail).width(150).height(100).url()}
-                                alt={post.title}
-                                width={150}
-                                height={100}
-                            />
-                        )}
+                    <li key={post.slug}>
+                        <Link
+                            href={`/blog/${post.slug}`}
+                            className="text-blue-600 hover:underline"
+                        >
+                            {post.title}
+                        </Link>
                     </li>
                 ))}
             </ul>
         </main>
     );
-};
+}
